@@ -40,8 +40,8 @@ if [[ -n "${GITHUB_REPO_URL:-}" ]]; then
   GITHUB_OWNER="${OWNER_REPO%%/*}"
   GITHUB_REPO="${OWNER_REPO##*/}"
 else
-  GITHUB_OWNER="${GITHUB_OWNER:-${GITHUB_ORG:-Icohangar-ops}}"
-  GITHUB_REPO="${GITHUB_REPO:-cup-pulse-pear}"
+GITHUB_OWNER="${GITHUB_OWNER:-${GITHUB_ORG:-Icohangar-ops}}"
+GITHUB_REPO="${GITHUB_REPO:-cup-pulse}"
   GITHUB_REPO_URL="https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}"
 fi
 

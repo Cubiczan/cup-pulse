@@ -140,8 +140,8 @@ cup-pulse-pear/
 **Requirements:** Node.js 22.17+, npm 10.9+
 
 ```bash
-git clone https://github.com/Icohangar-ops/cup-pulse-pear.git
-cd cup-pulse-pear
+git clone https://github.com/Icohangar-ops/cup-pulse.git
+cd cup-pulse
 npm install
 npm test
 npm start

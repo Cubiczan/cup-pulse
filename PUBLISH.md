@@ -21,17 +21,17 @@ export GIT_DIR="$PWD/.git-worktree"
 export GIT_WORK_TREE="$PWD"
 
 export GITHUB_TOKEN='YOUR_NEW_PAT'
-export GITHUB_REPO_URL='https://github.com/Cubiczan/cup-pulse-pear.git'
+export GITHUB_REPO_URL='https://github.com/Icohangar-ops/cup-pulse.git'
 
 bash scripts/publish.sh
 ```
 
-### If repo is under the org (`Icohangar-ops/cup-pulse-pear`)
+### If repo is under the org (`Icohangar-ops/cup-pulse`)
 
 ```bash
 export GITHUB_TOKEN='YOUR_NEW_PAT'
 export GITHUB_OWNER='Icohangar-ops'
-export GITHUB_REPO='cup-pulse-pear'
+export GITHUB_REPO='cup-pulse'
 bash scripts/publish.sh
 ```
 
@@ -46,7 +46,7 @@ export GIT_DIR="$PWD/.git-worktree"
 export GIT_WORK_TREE="$PWD"
 
 git remote remove origin 2>/dev/null || true
-git remote add origin https://github.com/Cubiczan/cup-pulse-pear.git
+git remote add origin https://github.com/Icohangar-ops/cup-pulse.git
 git push -u origin main
 ```
 
@@ -79,6 +79,6 @@ ln -sf .git-worktree .git
 
 After push, submit at: https://dorahacks.io/hackathon/tether-developers-cup/detail
 
-- **Repo:** `https://github.com/Icohangar-ops/cup-pulse-pear`  
-- **Video:** `https://github.com/Icohangar-ops/cup-pulse-pear/blob/main/demo/cup-pulse-demo.mp4`  
+- **Repo:** `https://github.com/Icohangar-ops/cup-pulse`  
+- **Video:** `https://github.com/Icohangar-ops/cup-pulse/blob/main/demo/cup-pulse-demo.mp4`  
 - **Track:** Pears : Peer to Peer  
