@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cup Pulse Demo</title>
+    <link rel="stylesheet" href="../renderer/styles.css" />
+    <style>
+      .splash {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: grid;
+        place-items: center;
+        background: rgba(7, 20, 12, 0.96);
+        text-align: center;
+        padding: 2rem;
+      }
+      .splash h2 {
+        font-size: 2.4rem;
+        margin: 0 0 0.5rem;
+      }
+      .splash p {
+        color: #9bb5a4;
+        max-width: 36rem;
+        margin: 0 auto;
+      }
+      .splash.hidden {
+        display: none;
+      }
+      .outro {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: none;
+        place-items: center;
+        background: rgba(7, 20, 12, 0.96);
+        text-align: center;
+        padding: 2rem;
+      }
+      .outro.visible {
+        display: grid;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="splash" class="splash">
+      <div>
+        <p class="eyebrow">Tether Developers Cup · Pears Stack</p>
+        <h2>Cup Pulse</h2>
+        <p>P2P fan war room — predictions &amp; watch-party pipeline with no central server</p>
+      </div>
+    </div>
+
+    <div id="outro" class="outro">
+      <div>
+        <h2>Built on the Pears Stack</h2>
+        <p>Hyperswarm · Hypercore · Corestore · Bare workers · Electron</p>
+        <p class="muted">github.com — cup-pulse-pear</p>
+      </div>
+    </div>
+
+    <header class="header">
+      <div>
+        <p class="eyebrow">Tether Developers Cup · Pears Stack</p>
+        <h1>Cup Pulse</h1>
+        <p class="subtitle">Peer-to-peer fan predictions &amp; watch-party pipeline — no server in the middle</p>
+      </div>
+      <div class="status">
+        <span id="peer-count" class="badge">0 peers</span>
+        <span id="sync-status" class="badge badge-muted">connecting…</span>
+      </div>
+    </header>
+
+    <section class="metrics" aria-label="Pipeline metrics">
+      <article class="metric">
+        <p>Open pledges</p>
+        <strong id="metric-open">$0</strong>
+      </article>
+      <article class="metric">
+        <p>Weighted confidence</p>
+        <strong id="metric-weighted">$0</strong>
+      </article>
+      <article class="metric">
+        <p>Critical predictions</p>
+        <strong id="metric-critical">0</strong>
+      </article>
+      <article class="metric">
+        <p>Overdue watch-party tasks</p>
+        <strong id="metric-overdue">0</strong>
+      </article>
+    </section>
+
+    <section class="toolbar">
+      <label>
+        Organizer
+        <select id="owner-filter">
+          <option value="all">All organizers</option>
+        </select>
+      </label>
+      <button id="add-prediction" type="button">Add prediction</button>
+    </section>
+
+    <main class="grid">
+      <section>
+        <div class="section-head">
+          <h2>Predictions</h2>
+          <span id="result-count" class="muted">0 deals</span>
+        </div>
+        <div id="opportunity-list" class="card-list"></div>
+      </section>
+      <section>
+        <div class="section-head">
+          <h2>Fan clubs</h2>
+        </div>
+        <div id="account-list" class="card-list"></div>
+      </section>
+    </main>
+
+    <script type="module">
+      import {
+        enrichOpportunities,
+        filterByOwner,
+        summarizeOwners,
+        summarizePipeline
+      } from '../shared/cup.mjs'
+
+      const state = { crm: null, owner: 'all', peers: 0 }
+
+      const elements = {
+        splash: document.querySelector('#splash'),
+        outro: document.querySelector('#outro'),
+        ownerFilter: document.querySelector('#owner-filter'),
+        opportunityList: document.querySelector('#opportunity-list'),
+        resultCount: document.querySelector('#result-count'),
+        accountList: document.querySelector('#account-list'),
+        metricOpen: document.querySelector('#metric-open'),
+        metricWeighted: document.querySelector('#metric-weighted'),
+        metricCritical: document.querySelector('#metric-critical'),
+        metricOverdue: document.querySelector('#metric-overdue'),
+        peerCount: document.querySelector('#peer-count'),
+        syncStatus: document.querySelector('#sync-status'),
+        addPrediction: document.querySelector('#add-prediction')
+      }
+
+      function formatCompact(value) {
+        if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+        if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`
+        return String(value)
+      }
+
+      function cssToken(value) {
+        return value.replace(/\s+/g, '-')
+      }
+
+      function render() {
+        if (!state.crm) return
+        const opportunities = filterByOwner(enrichOpportunities(state.crm), state.owner)
+        const metrics = summarizePipeline(state.crm, state.owner)
+
+        elements.metricOpen.textContent = `$${formatCompact(metrics.openPipeline)}`
+        elements.metricWeighted.textContent = `$${formatCompact(metrics.weightedPipeline)}`
+        elements.metricCritical.textContent = metrics.criticalDeals
+        elements.metricOverdue.textContent = metrics.overdueTasks
+        elements.resultCount.textContent = `${opportunities.length} prediction${opportunities.length === 1 ? '' : 's'}`
+        elements.peerCount.textContent = `${state.peers} peer${state.peers === 1 ? '' : 's'}`
+
+        elements.accountList.replaceChildren(
+          ...state.crm.accounts
+            .filter((a) => state.owner === 'all' || a.owner === state.owner)
+            .map((account) => {
+              const row = document.createElement('article')
+              row.className = 'account-row'
+              row.innerHTML = `
+                <div>
+                  <strong>${account.name}</strong>
+                  <span>${account.owner} · ${account.segment}</span>
+                </div>
+                <p class="health health-${cssToken(account.health)}">${account.health}</p>
+              `
+              return row
+            })
+        )
+
+        elements.opportunityList.replaceChildren(
+          ...opportunities.map((opportunity) => {
+            const card = document.createElement('article')
+            card.className = 'card'
+            card.innerHTML = `
+              <header>
+                <div>
+                  <h3>${opportunity.name}</h3>
+                  <p>${opportunity.account.name} · ${opportunity.stage}</p>
+                </div>
+                <strong>$${formatCompact(opportunity.amount)}</strong>
+              </header>
+              <div class="pill-row">
+                <span class="pill">${opportunity.probability}% confidence</span>
+                <span class="pill">Weighted $${formatCompact(opportunity.weightedAmount)}</span>
+                <span class="pill risk-${opportunity.riskLabel}">${opportunity.riskLabel} risk (${opportunity.riskScore})</span>
+                <span class="pill">${opportunity.forecastCategory}</span>
+              </div>
+            `
+            return card
+          })
+        )
+      }
+
+      function setPeers(count) {
+        state.peers = count
+        elements.peerCount.textContent = `${count} peer${count === 1 ? '' : 's'}`
+        elements.syncStatus.textContent = count > 0 ? 'synced' : 'connecting…'
+      }
+
+      function addPrediction() {
+        state.crm.opportunities.unshift({
+          id: `pred-${Date.now()}`,
+          accountId: state.crm.accounts[0].id,
+          name: 'Argentina vs France — penalty shootout',
+          stage: 'Final',
+          amount: 500,
+          probability: 55,
+          closeDate: '2026-07-14',
+          nextStep: 'Confirm watch-party venue',
+          lastActivityDays: 1,
+          contactCoverage: 3
+        })
+        render()
+      }
+
+      fetch('../shared/seed.json')
+        .then((r) => r.json())
+        .then((data) => {
+          state.crm = structuredClone(data)
+          for (const owner of summarizeOwners(data)) {
+            const option = document.createElement('option')
+            option.value = owner
+            option.textContent = owner
+            elements.ownerFilter.append(option)
+          }
+          applyScene(location.hash.replace('#', '') || 'overview')
+        })
+
+      function applyScene(scene) {
+        if (!state.crm) return
+
+        elements.splash.classList.add('hidden')
+        elements.outro.classList.remove('visible')
+        elements.syncStatus.textContent = 'synced'
+
+        switch (scene) {
+          case 'splash':
+            elements.splash.classList.remove('hidden')
+            setPeers(0)
+            elements.syncStatus.textContent = 'connecting…'
+            state.owner = 'all'
+            elements.ownerFilter.value = 'all'
+            break
+          case 'maya':
+            state.owner = 'Maya Chen'
+            elements.ownerFilter.value = 'Maya Chen'
+            setPeers(2)
+            break
+          case 'jordan':
+            state.owner = 'Jordan Lee'
+            elements.ownerFilter.value = 'Jordan Lee'
+            setPeers(2)
+            break
+          case 'peers':
+            state.owner = 'all'
+            elements.ownerFilter.value = 'all'
+            setPeers(2)
+            break
+          case 'prediction':
+            state.owner = 'all'
+            elements.ownerFilter.value = 'all'
+            setPeers(2)
+            if (!state.crm.opportunities.some((o) => o.id === 'pred-demo-final')) {
+              state.crm.opportunities.unshift({
+                id: 'pred-demo-final',
+                accountId: state.crm.accounts[0].id,
+                name: 'Argentina vs France — penalty shootout',
+                stage: 'Final',
+                amount: 500,
+                probability: 55,
+                closeDate: '2026-07-14',
+                nextStep: 'Confirm watch-party venue',
+                lastActivityDays: 1,
+                contactCoverage: 3
+              })
+            }
+            break
+          case 'outro':
+            setPeers(2)
+            elements.outro.classList.add('visible')
+            break
+          case 'overview':
+          default:
+            state.owner = 'all'
+            elements.ownerFilter.value = 'all'
+            setPeers(1)
+            break
+        }
+
+        render()
+      }
+
+      window.demo = {
+        hideSplash() {
+          elements.splash.classList.add('hidden')
+        },
+        showOutro() {
+          elements.outro.classList.add('visible')
+        },
+        setOwner(value) {
+          state.owner = value
+          elements.ownerFilter.value = value
+          render()
+        },
+        setPeers,
+        addPrediction,
+        applyScene,
+        ready() {
+          return Boolean(state.crm)
+        }
+      }
+
+      window.addEventListener('hashchange', () => {
+        applyScene(location.hash.replace('#', '') || 'overview')
+      })
+    </script>
+  </body>
+</html>

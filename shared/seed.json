@@ -1,0 +1,164 @@
+{
+  "accounts": [
+    {
+      "id": "club-101",
+      "name": "Metro Ultras NYC",
+      "industry": "Fan Community",
+      "segment": "Watch Party",
+      "owner": "Maya Chen",
+      "health": "At Risk",
+      "arr": 4200,
+      "renewalDate": "2026-08-15"
+    },
+    {
+      "id": "club-102",
+      "name": "Bay Area Kickoff Crew",
+      "industry": "Fan Community",
+      "segment": "Prediction Pool",
+      "owner": "Jordan Lee",
+      "health": "Healthy",
+      "arr": 1800,
+      "renewalDate": "2026-11-01"
+    },
+    {
+      "id": "club-103",
+      "name": "London Terrace Collective",
+      "industry": "Fan Community",
+      "segment": "Tipping Pool",
+      "owner": "Maya Chen",
+      "health": "Watch",
+      "arr": 3100,
+      "renewalDate": "2026-07-20"
+    },
+    {
+      "id": "club-104",
+      "name": "Rio Samba Stand",
+      "industry": "Fan Community",
+      "segment": "Watch Party",
+      "owner": "Sam Rivera",
+      "health": "Healthy",
+      "arr": 2400,
+      "renewalDate": "2026-12-12"
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "pred-201",
+      "accountId": "club-101",
+      "name": "USA vs Germany — Quarter-Final upset",
+      "stage": "Quarter-Final",
+      "amount": 850,
+      "probability": 35,
+      "closeDate": "2026-07-10",
+      "nextStep": "",
+      "lastActivityDays": 22,
+      "contactCoverage": 1
+    },
+    {
+      "id": "pred-202",
+      "accountId": "club-102",
+      "name": "Spain to reach Final",
+      "stage": "Semi-Final",
+      "amount": 420,
+      "probability": 72,
+      "closeDate": "2026-07-14",
+      "nextStep": "Confirm pool split rules before kickoff",
+      "lastActivityDays": 2,
+      "contactCoverage": 4
+    },
+    {
+      "id": "pred-203",
+      "accountId": "club-103",
+      "name": "England vs France — extra time",
+      "stage": "Semi-Final",
+      "amount": 1200,
+      "probability": 48,
+      "closeDate": "2026-07-09",
+      "nextStep": "Post watch-party venue in group chat",
+      "lastActivityDays": 9,
+      "contactCoverage": 2
+    },
+    {
+      "id": "pred-204",
+      "accountId": "club-104",
+      "name": "Brazil clean sheet in R16",
+      "stage": "Round of 16",
+      "amount": 300,
+      "probability": 58,
+      "closeDate": "2026-07-06",
+      "nextStep": "Sync stream link with remote members",
+      "lastActivityDays": 5,
+      "contactCoverage": 3
+    },
+    {
+      "id": "pred-205",
+      "accountId": "club-101",
+      "name": "Group-stage tipping pool rollover",
+      "stage": "Group",
+      "amount": 150000,
+      "probability": 40,
+      "closeDate": "2026-07-05",
+      "nextStep": "",
+      "lastActivityDays": 25,
+      "contactCoverage": 1
+    }
+  ],
+  "contacts": [
+    {
+      "id": "contact-301",
+      "accountId": "club-101",
+      "name": "Alex Capitan",
+      "role": "Organizer",
+      "influence": "High"
+    },
+    {
+      "id": "contact-302",
+      "accountId": "club-102",
+      "name": "Priya Pool",
+      "role": "Treasurer",
+      "influence": "High"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-401",
+      "accountId": "club-101",
+      "title": "Book pub for QF watch party",
+      "dueDate": "2026-06-28",
+      "status": "open",
+      "priority": "high"
+    },
+    {
+      "id": "task-402",
+      "accountId": "club-103",
+      "title": "Collect tipping confirmations",
+      "dueDate": "2026-07-08",
+      "status": "open",
+      "priority": "medium"
+    },
+    {
+      "id": "task-403",
+      "accountId": "club-102",
+      "title": "Share prediction leaderboard",
+      "dueDate": "2026-07-12",
+      "status": "open",
+      "priority": "low"
+    }
+  ],
+  "activities": [
+    {
+      "id": "activity-501",
+      "accountId": "club-101",
+      "type": "note",
+      "date": "2026-06-20",
+      "summary": "No venue deposit sent — group engagement dropping."
+    },
+    {
+      "id": "activity-502",
+      "accountId": "club-102",
+      "type": "call",
+      "date": "2026-06-30",
+      "summary": "Confirmed 18 members for semi-final sync."
+    }
+  ]
+}

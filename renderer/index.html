@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cup Pulse — P2P Fan War Room</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="header">
+      <div>
+        <p class="eyebrow">Tether Developers Cup · Pears Stack</p>
+        <h1>Cup Pulse</h1>
+        <p class="subtitle">Peer-to-peer fan predictions &amp; watch-party pipeline — no server in the middle</p>
+      </div>
+      <div class="status">
+        <span id="peer-count" class="badge">0 peers</span>
+        <span id="sync-status" class="badge badge-muted">connecting…</span>
+      </div>
+    </header>
+
+    <section class="metrics" aria-label="Pipeline metrics">
+      <article class="metric">
+        <p>Open pledges</p>
+        <strong id="metric-open">$0</strong>
+      </article>
+      <article class="metric">
+        <p>Weighted confidence</p>
+        <strong id="metric-weighted">$0</strong>
+      </article>
+      <article class="metric">
+        <p>Critical predictions</p>
+        <strong id="metric-critical">0</strong>
+      </article>
+      <article class="metric">
+        <p>Overdue watch-party tasks</p>
+        <strong id="metric-overdue">0</strong>
+      </article>
+    </section>
+
+    <section class="toolbar">
+      <label>
+        Organizer
+        <select id="owner-filter">
+          <option value="all">All organizers</option>
+        </select>
+      </label>
+      <button id="add-prediction" type="button">Add prediction</button>
+    </section>
+
+    <main class="grid">
+      <section>
+        <div class="section-head">
+          <h2>Predictions</h2>
+          <span id="result-count" class="muted">0 deals</span>
+        </div>
+        <div id="opportunity-list" class="card-list"></div>
+      </section>
+      <section>
+        <div class="section-head">
+          <h2>Fan clubs</h2>
+        </div>
+        <div id="account-list" class="card-list"></div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>Synced via Hyperswarm + Hypercore on the Pears Stack. Run a second instance with <code>npm start -- --storage /tmp/cup-peer-2</code></p>
+    </footer>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
