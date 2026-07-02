@@ -9,19 +9,48 @@ You pasted PATs in chat. **Revoke them now** and create new ones:
 - GitHub → Settings → Developer settings → Personal access tokens  
 - Codeberg → Settings → Applications → Access tokens  
 
-## 2. Push to GitHub (Icohangar-ops)
+## 2. Push to GitHub
+
+**Use the exact owner from the repo URL GitHub showed when you created it.**
+
+### If repo is under your user (e.g. `Cubiczan/cup-pulse-pear`)
 
 ```bash
 cd /Users/cubiczan/Projects/cup-pulse-pear
+export GIT_DIR="$PWD/.git-worktree"
+export GIT_WORK_TREE="$PWD"
 
-export GITHUB_TOKEN='YOUR_NEW_ICOHANGAR_OPS_OR_GITHUB_PAT'
-export GITHUB_ORG='Icohangar-ops'
-export GITHUB_REPO='cup-pulse-pear'
+export GITHUB_TOKEN='YOUR_NEW_PAT'
+export GITHUB_REPO_URL='https://github.com/Cubiczan/cup-pulse-pear.git'
 
 bash scripts/publish.sh
 ```
 
-Repo URL will be: **https://github.com/Icohangar-ops/cup-pulse-pear**
+### If repo is under the org (`Icohangar-ops/cup-pulse-pear`)
+
+```bash
+export GITHUB_TOKEN='YOUR_NEW_PAT'
+export GITHUB_OWNER='Icohangar-ops'
+export GITHUB_REPO='cup-pulse-pear'
+bash scripts/publish.sh
+```
+
+> Org push requires the PAT to be **authorized for Icohangar-ops**:  
+> GitHub → **Icohangar-ops** → Settings → **Third-party access** / **Personal access tokens** → approve your token.
+
+### Manual push (if script still fails)
+
+```bash
+cd /Users/cubiczan/Projects/cup-pulse-pear
+export GIT_DIR="$PWD/.git-worktree"
+export GIT_WORK_TREE="$PWD"
+
+git remote remove origin 2>/dev/null || true
+git remote add origin https://github.com/Cubiczan/cup-pulse-pear.git
+git push -u origin main
+```
+
+(GitHub will prompt for username + PAT as password.)
 
 ## 3. Optional: push to Codeberg
 
