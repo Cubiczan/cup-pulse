@@ -10,7 +10,7 @@
   --danger: #ff6b6b;
   --warn: #ffd166;
   --border: rgba(255, 255, 255, 0.08);
-  font-family: "Segoe UI", system-ui, sans-serif;
+  font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
 * {

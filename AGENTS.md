@@ -28,12 +28,12 @@ shared/seed.json       → Football-themed fixture data
 
 ### Rules
 
-| Layer | Do | Don't |
-|-------|----|-------|
-| `workers/` | P2P sync, Hypercore append, IPC | DOM, scoring math |
-| `shared/cup.mjs` | Deterministic scoring | Network calls |
-| `renderer/` | Render UI, send IPC commands | P2P or scoring logic |
-| `shared/seed.json` | Demo data shape | Hardcode records in UI |
+| Layer              | Do                              | Don't                  |
+| ------------------ | ------------------------------- | ---------------------- |
+| `workers/`         | P2P sync, Hypercore append, IPC | DOM, scoring math      |
+| `shared/cup.mjs`   | Deterministic scoring           | Network calls          |
+| `renderer/`        | Render UI, send IPC commands    | P2P or scoring logic   |
+| `shared/seed.json` | Demo data shape                 | Hardcode records in UI |
 
 **No traditional client-server networking** for sync. All replication goes through the Pears Stack.
 
@@ -41,13 +41,13 @@ shared/seed.json       → Football-themed fixture data
 
 ## Domain model
 
-| CRM concept | Cup Pulse concept |
-|-------------|-------------------|
-| Account | Fan club / watch-party group |
-| Opportunity | Match prediction or pledge drive |
-| Stage | Tournament round |
-| Owner | Community organizer |
-| Risk score | Stale group / missing next step / low coverage |
+| CRM concept | Cup Pulse concept                              |
+| ----------- | ---------------------------------------------- |
+| Account     | Fan club / watch-party group                   |
+| Opportunity | Match prediction or pledge drive               |
+| Stage       | Tournament round                               |
+| Owner       | Community organizer                            |
+| Risk score  | Stale group / missing next step / low coverage |
 
 ### Forecast buckets
 
@@ -75,12 +75,12 @@ Before submission:
 
 Use curated skills from [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) when relevant:
 
-| Task | Skill |
-|------|-------|
+| Task            | Skill                                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Scoring changes | [test-driven-development](https://github.com/obra/superpowers/blob/main/skills/test-driven-development/SKILL.md) |
-| P2P debugging | [systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md) |
-| UI polish | [frontend-design](https://officialskills.sh/anthropics/skills/frontend-design) |
-| Browser demo | [webapp-testing](https://officialskills.sh/anthropics/skills/webapp-testing) |
+| P2P debugging   | [systematic-debugging](https://github.com/obra/superpowers/blob/main/skills/systematic-debugging/SKILL.md)       |
+| UI polish       | [frontend-design](https://officialskills.sh/anthropics/skills/frontend-design)                                   |
+| Browser demo    | [webapp-testing](https://officialskills.sh/anthropics/skills/webapp-testing)                                     |
 
 Install project skills in `.cursor/skills/`.
 

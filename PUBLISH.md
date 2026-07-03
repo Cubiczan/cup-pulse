@@ -6,8 +6,8 @@ Git data lives in `.git-worktree/` (workaround for this environment). Commits ar
 
 You pasted PATs in chat. **Revoke them now** and create new ones:
 
-- GitHub → Settings → Developer settings → Personal access tokens  
-- Codeberg → Settings → Applications → Access tokens  
+- GitHub → Settings → Developer settings → Personal access tokens
+- Codeberg → Settings → Applications → Access tokens
 
 ## 2. Push to GitHub
 
@@ -79,6 +79,6 @@ ln -sf .git-worktree .git
 
 After push, submit at: https://dorahacks.io/hackathon/tether-developers-cup/detail
 
-- **Repo:** `https://github.com/Icohangar-ops/cup-pulse`  
-- **Video:** `https://github.com/Icohangar-ops/cup-pulse/blob/main/demo/cup-pulse-demo.mp4`  
-- **Track:** Pears : Peer to Peer  
+- **Repo:** `https://github.com/Icohangar-ops/cup-pulse`
+- **Video:** `https://github.com/Icohangar-ops/cup-pulse/blob/main/demo/cup-pulse-demo.mp4`
+- **Track:** Pears : Peer to Peer

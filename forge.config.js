@@ -123,8 +123,7 @@ module.exports = {
         packageJson.upgrade.includes('<YOUR_KEY>')
 
       if (needsDevKey) {
-        packageJson.upgrade =
-          'pear://yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdo'
+        packageJson.upgrade = 'pear://yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdoqba8yhdo'
       }
 
       try {
