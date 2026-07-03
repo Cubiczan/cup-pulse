@@ -18,6 +18,7 @@
     "record:demo": "bash scripts/record-demo-ffmpeg.sh",
     "record:demo:ui": "bash scripts/record-demo-ui.sh",
     "record:demo:live": "bash scripts/record-demo-screen.sh",
+    "publish:cubiczan": "bash scripts/publish-cubiczan.sh",
     "postinstall": "node scripts/verify-electron.mjs || true",
     "test": "node --test test/cup.test.mjs",
     "package": "electron-forge package",

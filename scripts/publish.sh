@@ -86,3 +86,41 @@ git remote set-url origin "${GITHUB_REPO_URL}.git"
 echo ""
 echo "Success: ${GITHUB_REPO_URL}"
 echo "Video: ${GITHUB_REPO_URL}/blob/main/demo/cup-pulse-demo.mp4"
+
+# Optional mirror to personal GitHub (Cubiczan)
+if [[ -n "${CUBICZAN_TOKEN:-}" ]]; then
+  CUBICZAN_USER="${CUBICZAN_USER:-Cubiczan}"
+  CUBICZAN_REPO="${CUBICZAN_REPO:-cup-pulse}"
+  CUBICZAN_URL="https://github.com/${CUBICZAN_USER}/${CUBICZAN_REPO}"
+
+  echo ""
+  echo "=== Mirror to ${CUBICZAN_USER}/${CUBICZAN_REPO} ==="
+
+  CB_USER_JSON=$(curl -sS -H "Authorization: Bearer ${CUBICZAN_TOKEN}" -H "Accept: application/vnd.github+json" https://api.github.com/user)
+  CB_LOGIN=$(echo "$CB_USER_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin).get('login',''))" 2>/dev/null || true)
+
+  if [[ -z "$CB_LOGIN" ]]; then
+    echo "Cubiczan token invalid — skipping mirror."
+  else
+    echo "Cubiczan token user: $CB_LOGIN"
+
+    CB_REPO_JSON=$(curl -sS -H "Authorization: Bearer ${CUBICZAN_TOKEN}" \
+      "https://api.github.com/repos/${CUBICZAN_USER}/${CUBICZAN_REPO}")
+    CB_OK=$(echo "$CB_REPO_JSON" | python3 -c "import sys,json; d=json.load(sys.stdin); print('yes' if d.get('id') else 'no')" 2>/dev/null)
+
+    if [[ "$CB_OK" != "yes" ]]; then
+      echo "Creating ${CUBICZAN_USER}/${CUBICZAN_REPO}..."
+      curl -sS -X POST -H "Authorization: Bearer ${CUBICZAN_TOKEN}" \
+        -H "Accept: application/vnd.github+json" \
+        "https://api.github.com/user/repos" \
+        -d "{\"name\":\"${CUBICZAN_REPO}\",\"description\":\"Cup Pulse — P2P fan war room on the Pears Stack\",\"private\":false,\"auto_init\":false}" >/dev/null
+    fi
+
+    CB_REMOTE="https://x-access-token:${CUBICZAN_TOKEN}@github.com/${CUBICZAN_USER}/${CUBICZAN_REPO}.git"
+    git remote remove cubiczan 2>/dev/null || true
+    git remote add cubiczan "$CB_REMOTE"
+    git push -u cubiczan main
+    git remote set-url cubiczan "${CUBICZAN_URL}.git"
+    echo "Mirror: ${CUBICZAN_URL}"
+  fi
+fi
