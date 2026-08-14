@@ -4,7 +4,7 @@
 
 [![Tether Developers Cup](https://img.shields.io/badge/Hackathon-Tether%20Developers%20Cup-21c437)](https://dorahacks.io/hackathon/tether-developers-cup/detail)
 [![Track](https://img.shields.io/badge/Track-Pears%20Peer--to--Peer-0e4f15)](https://dorahacks.io/hackathon/tether-developers-cup/tracks)
-[![Tests](https://img.shields.io/badge/tests-10%20passing-brightgreen)](#verification)
+[![Tests](https://img.shields.io/badge/tests-41%20passing-brightgreen)](#verification)
 
 > **BUIDL submission** for [Tether Developers Cup](https://dorahacks.io/hackathon/tether-developers-cup/detail) · **Pears : Peer to Peer** track  
 > **Theme:** Football / global tournament — fans, teams, matches, predictions, watch-parties, communities
@@ -70,8 +70,41 @@ All **sync** runs on the **Pears Stack** in a **Bare worker** — not through Fa
 - **Forecast categories** — `Commit`, `Best Case`, `Pipeline`, `At Risk`
 - **Organizer filters** — consistent metrics across predictions, clubs, and tasks
 - **Tournament seed data** — football-themed fixtures (QF upsets, semi-final calls, tipping pools)
-- **Unit tests** — 10 tests on scoring, forecasts, filters, and summaries
+- **Unit tests** — 41 tests on scoring, forecasts, filters, summaries, and the media opt-in
 - **AGENTS.md** — agent ops manual + [awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills) integration
+
+---
+
+## Optional: watch-party audio (off by default)
+
+The README promises watch-parties, and Cup Pulse delivers the coordination —
+who's hosting, who's pledged, whose prediction is at risk — all peer-to-peer.
+What it cannot deliver peer-to-peer is people _talking_ while the match is on: a
+full audio mesh falls over around six participants, which is smaller than a real
+watch-party. Scaling past that needs an SFU, and an SFU is a server in the
+middle.
+
+So hosted audio exists as an explicit opt-in, **off by default and absent from
+the Pears track submission**:
+
+```bash
+export CUP_PULSE_MEDIA=on
+export AGORA_APP_ID=<your Agora app id>
+npm start
+```
+
+What does _not_ change when you enable it: predictions, pledges, tasks, and peer
+discovery stay on Hypercore and Hyperswarm, and there is still no Cup Pulse
+server anywhere. Only the audio is relayed. `assertStateStaysP2P()` enforces
+that boundary in code, and the test suite covers the off-by-default behaviour so
+you can verify the claim instead of trusting it.
+
+Tokens need a secret, and there is no server to keep one on — so **the organizer
+is the issuer**. The peer who owns the Agora project mints per-peer grants on
+their own machine and appends them to the same Hypercore feed everything else
+travels on. No infrastructure to deploy, nothing to keep running.
+
+Full tradeoff table and design notes: [docs/watch-party-media.md](docs/watch-party-media.md).
 
 ---
 
@@ -87,6 +120,12 @@ All **sync** runs on the **Pears Stack** in a **Bare worker** — not through Fa
 | **Creativity**                  | CRM pipeline metaphors for fan communities during a tournament moment                    |
 
 **Building blocks used:** [Pear runtime](https://docs.pears.com/reference/pear/runtime/), [Hyperswarm](https://github.com/holepunchto/hyperswarm), [Hypercore](https://github.com/holepunchto/hypercore), [Corestore](https://github.com/holepunchto/corestore), [hello-pear-electron](https://github.com/holepunchto/hello-pear-electron) scaffold.
+
+> **On "no client-server networking":** run Cup Pulse with no environment
+> variables set and that row holds without qualification — that is the
+> submission. The optional watch-party audio layer described above is off in
+> that configuration, and even when enabled it relays audio only; the sync path
+> is never anything but P2P.
 
 ---
 
