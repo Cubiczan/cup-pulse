@@ -39,6 +39,7 @@ contextBridge.exposeInMainWorld('bridge', {
   // process; only the public config and finished tokens cross this bridge.
   watchParty: {
     config: () => ipcRenderer.invoke('watch-party:config'),
+    identify: (peerKey) => ipcRenderer.invoke('watch-party:identify', peerKey),
     mint: (request) => ipcRenderer.invoke('watch-party:mint', request)
   }
 })

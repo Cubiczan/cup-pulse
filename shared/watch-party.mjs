@@ -113,6 +113,22 @@ export function partyChannel(matchId) {
 }
 
 /**
+ * Deterministic uid for a peer, derived from its public key.
+ *
+ * Deterministic so a reconnecting peer keeps the same audio identity. uid 0 is
+ * an Agora wildcard, so the range starts at 1.
+ */
+export function mediaUid(peerKey) {
+  let hash = 2166136261
+  const value = String(peerKey)
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (Math.abs(hash) % 0xfffffffe) + 1
+}
+
+/**
  * Who may publish audio.
  *
  * In broadcast mode only the organizer publishes. Enforced when the grant is
@@ -167,11 +183,14 @@ export function createTokenGrant({
 }
 
 /** Shape + freshness check for a grant received from another peer. */
-export function validateTokenGrant(grant, nowSeconds) {
+export function validateTokenGrant(grant, nowSeconds, { expectedChannel } = {}) {
   if (grant === null || typeof grant !== 'object') return { valid: false, reason: 'not an object' }
   if (grant.kind !== 'agora-token-grant') return { valid: false, reason: 'wrong record kind' }
   if (!isValidChannelName(String(grant.channel ?? ''))) {
     return { valid: false, reason: 'invalid channel' }
+  }
+  if (expectedChannel && grant.channel !== expectedChannel) {
+    return { valid: false, reason: 'channel mismatch' }
   }
   if (!Number.isInteger(grant.uid) || grant.uid < 1) return { valid: false, reason: 'invalid uid' }
   if (grant.role !== 'publisher' && grant.role !== 'subscriber') {
@@ -207,8 +226,8 @@ export function selectGrantForPeer(grants, uid, nowSeconds) {
 }
 
 /**
- * What the user is actually agreeing to. Rendered in the UI next to the
- * toggle — an opt-in nobody understands is not really an opt-in.
+ * What the user is actually agreeing to. Intended for the UI next to a media
+ * toggle; this PR does not mount that toggle (see docs/watch-party-media.md).
  */
 export function describeTradeoff(config) {
   if (!config.enabled) {

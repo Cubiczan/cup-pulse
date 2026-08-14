@@ -44,13 +44,15 @@ data" is exactly the failure this layer is shaped to prevent.
 
 ## Enabling it
 
-Two variables, both required. An app id alone does nothing — a stray credential
-in a shell profile must never silently route a watch-party through a third
-party.
+Audio on requires `CUP_PULSE_MEDIA=on` and `AGORA_APP_ID`. Minting grants also
+needs `AGORA_APP_CERTIFICATE` on the organizer machine. An app id alone does
+nothing — a stray credential in a shell profile must never silently route a
+watch-party through a third party.
 
 ```bash
 export CUP_PULSE_MEDIA=on
 export AGORA_APP_ID=<your Agora app id>
+export AGORA_APP_CERTIFICATE=<only on the organizer machine>
 export CUP_PULSE_MEDIA_MODE=broadcast   # or: roundtable
 npm start
 ```
@@ -74,7 +76,9 @@ Cup Pulse has no server to keep a secret on, which normally kills this feature.
 
 The way out: **the organizer is the issuer.**
 
-```
+The designed path, not yet wired to the Hypercore log:
+
+```text
 organizer's machine                          other peers
 ──────────────────                           ───────────
 holds AGORA_APP_CERTIFICATE
@@ -83,24 +87,33 @@ mints a grant per peer      ── Hypercore ──▶  read the feed
                                               join Agora with it
 ```
 
-The organizer is not a server. It is the peer who happens to own the Agora
-project, minting credentials locally and appending them to the same feed
-everything else already travels on. There is still no Cup Pulse infrastructure
-anywhere — no API to call, nothing to deploy, nothing to keep running.
+This PR ships the rules, the issuer IPC, and the join helper. It does **not**
+append grants to Hypercore, and it does not mount a media toggle in the UI —
+`WatchPartySession` is unused by `renderer/app.js`. Fans therefore cannot yet
+receive a grant from the organizer's feed. Mixing tokens into the CRM state
+log (`shared/cup.mjs`) is deliberately out of scope.
 
-Details that make this work:
+When that feed is wired, grants must not travel plaintext on a shared log: any
+peer who can read the organizer's publisher token can join as the organizer
+and speak. That encryption/private-feed work is a follow-up, not this PR.
 
-- **uids are derived from peer keys** (FNV-1a over the public key), so a peer
-  that reconnects keeps the same audio identity with no negotiation.
-- **Renewals append, they don't replace.** Hypercore is append-only, so a fresh
-  grant lands next to the old one; `selectGrantForPeer()` takes the newest
-  valid one. No deletion semantics needed.
-- **Grants carry no Cup Pulse identity** — just channel, uid, role, token. A
-  leaked grant reveals that a watch-party happened, not who predicted what.
+What _is_ in place:
+
+- **uids are derived from peer keys** (FNV-1a over the public key, in
+  `shared/watch-party.mjs` so fans can compute their own), so a reconnecting
+  peer keeps the same audio identity.
+- **Publisher role is derived in main** from the identified local peer key,
+  not from a renderer-supplied `isOrganizer` flag.
+- **Issuer renewal** re-mints for the same channel on
+  `token-privilege-will-expire`. Fan renewal waits on the unwired feed.
+- **`selectGrantForPeer()`** is ready for append-only renewals once the feed
+  exists; a leaked grant still reveals that a watch-party happened, not who
+  predicted what.
 - **Expiry has a 30-second skew guard**, so a peer refuses a nearly-dead token
   rather than joining and getting kicked mid-sentence.
 - **The certificate never crosses the IPC bridge.** It lives in the main
   process; the renderer only ever sees finished tokens.
+- **Join failures clean up.** Mic and client stay local until setup succeeds.
 
 ## Layout
 
@@ -109,7 +122,7 @@ Details that make this work:
 | `shared/watch-party.mjs`    | All the rules. Pure, no I/O, no Cup Pulse state. Shared by main, renderer, and tests. |
 | `electron/watch-party.js`   | Main process: holds the certificate, mints grants, exposes IPC.                       |
 | `renderer/watch-party.js`   | Joins the audio channel. Loads the Agora SDK only after opt-in.                       |
-| `test/watch-party.test.mjs` | 31 tests over the rules, including every way the opt-in can be got wrong.             |
+| `test/watch-party.test.mjs` | Tests over the rules, including every way the opt-in can be got wrong.                |
 
 Both Agora packages are `optionalDependencies`. An install that skips them
 still boots a fully working peer-to-peer app; the media paths fail with a

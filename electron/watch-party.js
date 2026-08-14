@@ -35,32 +35,18 @@ function loadTokenBuilder() {
 }
 
 /**
- * Deterministic uid for a peer, derived from its public key.
- *
- * Deterministic so a peer that reconnects keeps the same audio identity, and
- * derived from a key the peer already publishes so no new identifier has to be
- * negotiated. uid 0 is reserved by Agora, so the range starts at 1.
- */
-function mediaUid(peerKey) {
-  let hash = 2166136261
-  const value = String(peerKey)
-  for (let i = 0; i < value.length; i++) {
-    hash ^= value.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
-  }
-  return (Math.abs(hash) % 0xfffffffe) + 1
-}
-
-/**
  * Mint a grant for one peer. Resolves to null when this machine is not the
  * issuer or the media layer is off — callers treat null as "no audio", never
  * as an error worth interrupting the watch-party for.
+ *
+ * Publisher vs subscriber is derived here from the identified local peer key,
+ * not from a renderer-supplied `isOrganizer` flag.
  */
 async function mintGrant({
   env = process.env,
   matchId,
   peerKey,
-  isOrganizer = false,
+  localPeerKey = null,
   now = Date.now()
 }) {
   const shared = await loadShared()
@@ -77,7 +63,8 @@ async function mintGrant({
   }
 
   const channel = shared.partyChannel(matchId)
-  const uid = mediaUid(peerKey)
+  const uid = shared.mediaUid(peerKey)
+  const isOrganizer = localPeerKey !== null && peerKey === localPeerKey
   const role = shared.publishRoleFor(config.mode, { isOrganizer })
   const issuedAt = Math.floor(now / 1000)
 
@@ -101,6 +88,12 @@ async function mintGrant({
  * and finished grants.
  */
 function registerWatchPartyIpc(ipcMain, { env = process.env } = {}) {
+  // First identify() wins for the life of the process. The organizer machine
+  // is the issuer; fans never reach mint(). A patched renderer on the issuer
+  // already holds the certificate, so the bound key only stops it from
+  // accidentally minting publisher tokens for other peers in broadcast mode.
+  let localPeerKey = null
+
   ipcMain.handle('watch-party:config', async () => {
     const shared = await loadShared()
     const config = shared.resolveMediaConfig(env)
@@ -113,13 +106,21 @@ function registerWatchPartyIpc(ipcMain, { env = process.env } = {}) {
     }
   })
 
+  ipcMain.handle('watch-party:identify', (_event, peerKey) => {
+    if (typeof peerKey !== 'string' || peerKey.trim() === '') {
+      throw new Error('watch-party:identify requires a non-empty peerKey')
+    }
+    if (localPeerKey === null) localPeerKey = peerKey
+    return { localPeerKey }
+  })
+
   ipcMain.handle('watch-party:mint', (_event, payload) => {
-    const { matchId, peerKey, isOrganizer } = payload ?? {}
+    const { matchId, peerKey } = payload ?? {}
     if (typeof matchId !== 'string' || typeof peerKey !== 'string') {
       throw new Error('watch-party:mint requires string matchId and peerKey')
     }
-    return mintGrant({ env, matchId, peerKey, isOrganizer: isOrganizer === true })
+    return mintGrant({ env, matchId, peerKey, localPeerKey })
   })
 }
 
-module.exports = { mediaUid, mintGrant, registerWatchPartyIpc }
+module.exports = { mintGrant, registerWatchPartyIpc }

@@ -90,6 +90,7 @@ the Pears track submission**:
 ```bash
 export CUP_PULSE_MEDIA=on
 export AGORA_APP_ID=<your Agora app id>
+export AGORA_APP_CERTIFICATE=<only on the organizer machine>
 npm start
 ```
 
@@ -100,11 +101,9 @@ that boundary in code, and the test suite covers the off-by-default behaviour so
 you can verify the claim instead of trusting it.
 
 Tokens need a secret, and there is no server to keep one on — so **the organizer
-is the issuer**. The peer who owns the Agora project mints per-peer grants on
-their own machine and appends them to the same Hypercore feed everything else
-travels on. No infrastructure to deploy, nothing to keep running.
-
-Full tradeoff table and design notes: [docs/watch-party-media.md](docs/watch-party-media.md).
+is the issuer**. This PR ships mint IPC and the join helper. Hypercore grant
+distribution and the UI toggle are not wired yet; see
+[docs/watch-party-media.md](docs/watch-party-media.md).
 
 ---
 

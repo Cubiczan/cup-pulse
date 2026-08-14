@@ -7,6 +7,8 @@
 import {
   assertStateStaysP2P,
   describeTradeoff,
+  mediaUid,
+  partyChannel,
   selectGrantForPeer,
   validateTokenGrant
 } from '../shared/watch-party.mjs'
@@ -61,6 +63,7 @@ export class WatchPartySession {
     this.client = null
     this.micTrack = null
     this.grant = null
+    this._joinArgs = null
     this.listeners = new Set()
   }
 
@@ -96,11 +99,11 @@ export class WatchPartySession {
   /**
    * Join the watch-party audio channel.
    *
-   * `grants` is whatever has replicated over Hypercore so far — the organizer
-   * appends grants to the feed and every peer sees them. We pick our own newest
-   * valid one; there is no request/response round-trip anywhere.
+   * Issuer machines mint locally. Everyone else waits for a grant the
+   * organizer has already issued — Hypercore distribution of those grants is
+   * not wired in this PR (see docs/watch-party-media.md).
    */
-  async join({ matchId, peerKey, grants, isOrganizer = false }) {
+  async join({ matchId, peerKey, grants }) {
     if (!this.config) await this.load()
     if (!this.config.enabled) {
       throw new Error('Media layer is off. Set CUP_PULSE_MEDIA=on to enable watch-party audio.')
@@ -108,21 +111,20 @@ export class WatchPartySession {
     if (this.client) return this.status()
 
     const now = Math.floor(Date.now() / 1000)
+    const expectedChannel = partyChannel(matchId)
     let grant = null
 
     if (this.config.canIssue) {
-      // This machine owns the Agora project — mint our own rather than waiting
-      // for a grant we would have had to issue to ourselves.
-      grant = await this.bridge.watchParty.mint({ matchId, peerKey, isOrganizer })
+      await this.bridge.watchParty.identify(peerKey)
+      grant = await this.bridge.watchParty.mint({ matchId, peerKey })
     } else {
-      const uid = grants?.selfUid ?? null
-      grant = uid === null ? null : selectGrantForPeer(grants.records, uid, now)
+      grant = selectGrantForPeer(grants?.records, mediaUid(peerKey), now)
     }
 
     if (grant === null) {
       throw new Error('No valid watch-party token yet — waiting for the organizer to issue one.')
     }
-    const check = validateTokenGrant(grant, now)
+    const check = validateTokenGrant(grant, now, { expectedChannel })
     if (!check.valid) {
       throw new Error(`Watch-party token rejected: ${check.reason}`)
     }
@@ -133,25 +135,74 @@ export class WatchPartySession {
     // Live mode so broadcast/audience roles are meaningful; the token already
     // decides whether this peer may publish, so a patched client gains nothing.
     const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' })
-    await client.setClientRole(grant.role === 'publisher' ? 'host' : 'audience')
+    let micTrack = null
+    try {
+      await client.setClientRole(grant.role === 'publisher' ? 'host' : 'audience')
 
-    client.on('user-published', async (user, mediaType) => {
-      if (mediaType !== 'audio') return
-      await client.subscribe(user, mediaType)
-      user.audioTrack?.play()
-    })
+      client.on('user-published', async (user, mediaType) => {
+        if (mediaType !== 'audio') return
+        await client.subscribe(user, mediaType)
+        user.audioTrack?.play()
+      })
 
-    await client.join(this.config.appId, grant.channel, grant.token, grant.uid)
+      if (this.config.canIssue) {
+        client.on('token-privilege-will-expire', () => {
+          void this._renewIssuerToken()
+        })
+      }
 
-    if (grant.role === 'publisher') {
-      this.micTrack = await AgoraRTC.createMicrophoneAudioTrack()
-      await client.publish([this.micTrack])
+      await client.join(this.config.appId, grant.channel, grant.token, grant.uid)
+
+      if (grant.role === 'publisher') {
+        micTrack = await AgoraRTC.createMicrophoneAudioTrack()
+        await client.publish([micTrack])
+      }
+    } catch (error) {
+      if (micTrack) {
+        try {
+          await client.unpublish([micTrack])
+        } catch {
+          // Best-effort; the track may never have been published.
+        }
+        micTrack.stop()
+        micTrack.close()
+      }
+      try {
+        await client.leave()
+      } catch {
+        // Best-effort; join itself may have failed.
+      }
+      client.removeAllListeners()
+      throw error
     }
 
     this.client = client
+    this.micTrack = micTrack
     this.grant = grant
+    this._joinArgs = { matchId, peerKey }
     this.emit()
     return this.status()
+  }
+
+  async _renewIssuerToken() {
+    const args = this._joinArgs
+    const client = this.client
+    if (!args || !client || !this.config?.canIssue) return
+    try {
+      const fresh = await this.bridge.watchParty.mint({
+        matchId: args.matchId,
+        peerKey: args.peerKey
+      })
+      if (!fresh?.token) return
+      const check = validateTokenGrant(fresh, Math.floor(Date.now() / 1000), {
+        expectedChannel: partyChannel(args.matchId)
+      })
+      if (!check.valid) return
+      await client.renewToken(fresh.token)
+      this.grant = fresh
+    } catch {
+      // The call will end at expiry.
+    }
   }
 
   async setMuted(muted) {
@@ -177,6 +228,7 @@ export class WatchPartySession {
       this.client = null
     }
     this.grant = null
+    this._joinArgs = null
     this.emit()
   }
 }

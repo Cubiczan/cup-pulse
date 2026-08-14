@@ -9,6 +9,7 @@ import {
   describeTradeoff,
   isTokenIssuer,
   isValidChannelName,
+  mediaUid,
   partyChannel,
   publishRoleFor,
   resolveMediaConfig,
@@ -111,6 +112,24 @@ describe('channel names', () => {
   })
 })
 
+describe('mediaUid', () => {
+  it('never returns the Agora wildcard uid 0', () => {
+    for (const key of ['peer-a', 'peer-b', '', '0', 'organizer']) {
+      const uid = mediaUid(key)
+      assert.equal(Number.isInteger(uid), true)
+      assert.ok(uid >= 1 && uid <= 0xffffffff, `uid ${uid} for "${key}"`)
+    }
+  })
+
+  it('is deterministic for the same peer key', () => {
+    assert.equal(mediaUid('abc'), mediaUid('abc'))
+  })
+
+  it('differs for distinct peer keys', () => {
+    assert.notEqual(mediaUid('alice'), mediaUid('bob'))
+  })
+})
+
 describe('publishRoleFor', () => {
   it('lets only the organizer speak in broadcast mode', () => {
     assert.equal(publishRoleFor('broadcast', { isOrganizer: true }), 'publisher')
@@ -174,6 +193,12 @@ describe('validateTokenGrant', () => {
     assert.equal(validateTokenGrant({ ...grant(), role: 'admin' }, NOW).valid, false)
     assert.equal(validateTokenGrant({ ...grant(), uid: -1 }, NOW).valid, false)
     assert.equal(validateTokenGrant({ ...grant(), channel: 'a/b' }, NOW).valid, false)
+    assert.equal(validateTokenGrant(grant(), NOW, { expectedChannel: 'cup-other' }).valid, false)
+    assert.equal(
+      validateTokenGrant(grant(), NOW, { expectedChannel: 'cup-other' }).reason,
+      'channel mismatch'
+    )
+    assert.equal(validateTokenGrant(grant(), NOW, { expectedChannel: 'cup-final' }).valid, true)
   })
 })
 
