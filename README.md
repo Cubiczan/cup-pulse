@@ -34,6 +34,10 @@ We reuse **deterministic pipeline scoring** (ported from sales-ops CRM logic) so
 3. Two peers on the Pears Stack — add prediction in one window, sync to the other
 4. Explainable risk labels and forecast buckets (`Commit`, `Best Case`, `Pipeline`, `At Risk`)
 
+## PRISMtrace
+
+Set `PRISMTRACE_API_KEY` and `PRISMTRACE_PROJECT_ID` to export Electron and peer-sync traces to BlockConvey.
+
 ---
 
 ## Problem

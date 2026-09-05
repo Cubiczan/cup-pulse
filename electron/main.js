@@ -3,6 +3,7 @@ const os = require('os')
 const path = require('path')
 const PearRuntime = require('pear-runtime')
 const FramedStream = require('framed-stream')
+const { tracePrismLLM } = require('../observability/prism')
 
 const { isMac, isLinux, isWindows } = require('which-runtime')
 const { command, flag } = require('paparam')
@@ -15,6 +16,7 @@ const mainWorkerSpecifier = '/workers/main.js'
 const workers = new Map()
 
 const appName = productName ?? name
+const bootStarted = Date.now()
 
 const cmd = command(
   appName,
@@ -96,6 +98,18 @@ function getWorker(specifier) {
     return pipe.write(data)
   })
   workers.set(specifier, pipe)
+  void tracePrismLLM({
+    agentId: 'cup-pulse',
+    agentName: 'Cup Pulse Electron',
+    model: 'pear-worker',
+    inputMessages: [
+      { role: 'system', content: 'Start a Pear worker for the Cup Pulse P2P app.' },
+      { role: 'user', content: specifier }
+    ],
+    output: 'worker started',
+    latencyMs: Date.now() - bootStarted,
+    metadata: { specifier, updates: updates !== false }
+  })
   pipe.on('data', sendWorkerIPC)
   worker.stdout.on('data', sendWorkerStdout)
   worker.stderr.on('data', sendWorkerStderr)
@@ -192,7 +206,19 @@ if (!lock) {
     if (url) handleDeepLink(url)
   })
 
-  app.whenReady().then(() => {
+app.whenReady().then(() => {
+    void tracePrismLLM({
+      agentId: 'cup-pulse',
+      agentName: 'Cup Pulse Electron',
+      model: 'startup',
+      inputMessages: [
+        { role: 'system', content: 'Launch the Cup Pulse Electron shell.' },
+        { role: 'user', content: appName }
+      ],
+      output: 'window ready',
+      latencyMs: Date.now() - bootStarted,
+      metadata: { appName, packaged: app.isPackaged }
+    })
     createWindow().catch((err) => {
       console.error('Failed to create window:', err)
       app.quit()

@@ -4,6 +4,7 @@ const Corestore = require('corestore')
 const goodbye = require('graceful-goodbye')
 const FramedStream = require('framed-stream')
 const path = require('bare-path')
+const { tracePrismLLM } = require('../observability/prism')
 
 const seed = require('./seed.json')
 
@@ -28,6 +29,7 @@ const pear = new PearRuntime({ ...updaterConfig, swarm, store })
 let cupCore = null
 let latestState = null
 let cupReady = null
+const startedAt = Date.now()
 
 pear.updater.on('error', console.error)
 
@@ -84,6 +86,18 @@ async function initCupCore() {
     cupCore.on('append', onCoreAppend)
     latestState = await readLatestState()
     broadcastPeers()
+    void tracePrismLLM({
+      agentId: 'cup-pulse',
+      agentName: 'Cup Pulse Worker',
+      model: 'peer-sync',
+      inputMessages: [
+        { role: 'system', content: 'Initialize the peer-to-peer state worker.' },
+        { role: 'user', content: 'cup-pulse-state' }
+      ],
+      output: 'worker ready',
+      latencyMs: Date.now() - startedAt,
+      metadata: { peers: peerCount() }
+    })
   })()
 
   return cupReady
@@ -129,6 +143,18 @@ pipe.on('data', async (data) => {
 
     if (message.type === 'setState') {
       await writeState(message.data)
+      void tracePrismLLM({
+        agentId: 'cup-pulse',
+        agentName: 'Cup Pulse Worker',
+        model: 'state-update',
+        inputMessages: [
+          { role: 'system', content: 'Persist shared Cup Pulse state.' },
+          { role: 'user', content: message.type }
+        ],
+        output: 'state updated',
+        latencyMs: 0,
+        metadata: { peers: peerCount(), action: 'setState' }
+      })
       send({ type: 'state', data: latestState })
       return
     }
@@ -137,6 +163,18 @@ pipe.on('data', async (data) => {
       const state = clone(latestState)
       state.opportunities.push(message.prediction)
       await writeState(state)
+      void tracePrismLLM({
+        agentId: 'cup-pulse',
+        agentName: 'Cup Pulse Worker',
+        model: 'prediction',
+        inputMessages: [
+          { role: 'system', content: 'Add a match prediction to shared state.' },
+          { role: 'user', content: JSON.stringify(message.prediction) }
+        ],
+        output: 'prediction synced',
+        latencyMs: 0,
+        metadata: { peers: peerCount(), action: 'addPrediction' }
+      })
       send({ type: 'state', data: latestState })
     }
   } catch (err) {
