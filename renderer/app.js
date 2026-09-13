@@ -4,6 +4,7 @@ import {
   summarizeOwners,
   summarizePipeline
 } from '../shared/cup.mjs'
+import { renderAccountRow, renderOpportunityCard } from './safe-dom.mjs'
 
 const bridge = window.bridge
 const decoder = new TextDecoder('utf-8')
@@ -39,10 +40,6 @@ function formatCompact(value) {
   return String(value)
 }
 
-function cssToken(value) {
-  return value.replace(/\s+/g, '-')
-}
-
 function render() {
   if (!state.crm) return
 
@@ -63,44 +60,12 @@ function render() {
 function renderAccounts(accounts, owner) {
   const visible = owner === 'all' ? accounts : accounts.filter((account) => account.owner === owner)
 
-  elements.accountList.replaceChildren(
-    ...visible.map((account) => {
-      const row = document.createElement('article')
-      row.className = 'account-row'
-      row.innerHTML = `
-        <div>
-          <strong>${account.name}</strong>
-          <span>${account.owner} · ${account.segment}</span>
-        </div>
-        <p class="health health-${cssToken(account.health)}">${account.health}</p>
-      `
-      return row
-    })
-  )
+  elements.accountList.replaceChildren(...visible.map(renderAccountRow))
 }
 
 function renderOpportunities(opportunities) {
   elements.opportunityList.replaceChildren(
-    ...opportunities.map((opportunity) => {
-      const card = document.createElement('article')
-      card.className = 'card'
-      card.innerHTML = `
-        <header>
-          <div>
-            <h3>${opportunity.name}</h3>
-            <p>${opportunity.account.name} · ${opportunity.stage}</p>
-          </div>
-          <strong>$${formatCompact(opportunity.amount)}</strong>
-        </header>
-        <div class="pill-row">
-          <span class="pill">${opportunity.probability}% confidence</span>
-          <span class="pill">Weighted $${formatCompact(opportunity.weightedAmount)}</span>
-          <span class="pill risk-${opportunity.riskLabel}">${opportunity.riskLabel} risk (${opportunity.riskScore})</span>
-          <span class="pill">${opportunity.forecastCategory}</span>
-        </div>
-      `
-      return card
-    })
+    ...opportunities.map((opportunity) => renderOpportunityCard(opportunity, formatCompact))
   )
 }
 
