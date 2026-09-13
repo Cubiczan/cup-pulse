@@ -4,7 +4,7 @@ import {
   summarizeOwners,
   summarizePipeline
 } from '../shared/cup.mjs'
-import { renderAccountRow, renderOpportunityCard } from './safe-dom.js'
+import { renderAccountRow, renderOpportunityCard } from './safe-dom.mjs'
 
 const bridge = window.bridge
 const decoder = new TextDecoder('utf-8')

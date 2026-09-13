@@ -23,12 +23,12 @@ globalThis.document = {
   }
 }
 
-const { renderAccountRow, renderOpportunityCard } = await import('../renderer/safe-dom.js')
+const { renderAccountRow, renderOpportunityCard } = await import('../renderer/safe-dom.mjs')
 
 describe('safe DOM rendering', () => {
   for (const file of [
     'renderer/app.js',
-    'renderer/safe-dom.js',
+    'renderer/safe-dom.mjs',
     'renderer/watch-party.js',
     'demo/recording.html'
   ]) {
