@@ -26,7 +26,7 @@ jobs:
       package-name-lower: ${{ steps.prepare_build_metadata.outputs.package_name_lower }}
       version: ${{ steps.prepare_build_metadata.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Prepare build metadata
         id: prepare_build_metadata
         run: |
@@ -51,8 +51,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: actions/checkout@v4
-      - uses: holepunchto/actions/make-pear-app@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: holepunchto/actions/make-pear-app@aec0d5d8fb4e5b9c2480f79cd687db941428a279 # v1
         with:
           channel: ${{ env.CHANNEL }}
           upgrade_key: ${{ inputs['upgrade-key'] }}
@@ -81,8 +81,8 @@ jobs:
     runs-on: ubuntu-24.04-arm
     environment: release
     steps:
-      - uses: actions/checkout@v4
-      - uses: holepunchto/actions/make-pear-app@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: holepunchto/actions/make-pear-app@aec0d5d8fb4e5b9c2480f79cd687db941428a279 # v1
         id: build
         with:
           channel: ${{ env.CHANNEL }}
@@ -112,8 +112,8 @@ jobs:
     runs-on: macos-latest
     environment: release
     steps:
-      - uses: actions/checkout@v4
-      - uses: holepunchto/actions/make-pear-app@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: holepunchto/actions/make-pear-app@aec0d5d8fb4e5b9c2480f79cd687db941428a279 # v1
         id: build
         with:
           channel: ${{ env.CHANNEL }}
@@ -140,8 +140,8 @@ jobs:
     runs-on: macos-26-intel
     environment: release
     steps:
-      - uses: actions/checkout@v4
-      - uses: holepunchto/actions/make-pear-app@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: holepunchto/actions/make-pear-app@aec0d5d8fb4e5b9c2480f79cd687db941428a279 # v1
         id: build
         with:
           channel: ${{ env.CHANNEL }}
@@ -168,8 +168,8 @@ jobs:
     runs-on: windows-latest
     environment: release
     steps:
-      - uses: actions/checkout@v4
-      - uses: holepunchto/actions/make-pear-app@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: holepunchto/actions/make-pear-app@aec0d5d8fb4e5b9c2480f79cd687db941428a279 # v1
         id: build
         with:
           channel: ${{ env.CHANNEL }}
