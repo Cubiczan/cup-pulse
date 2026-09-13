@@ -34,5 +34,12 @@ contextBridge.exposeInMainWorld('bridge', {
   },
   writeWorkerIPC: (specifier, data) => {
     return ipcRenderer.invoke('pear:worker:writeIPC:' + specifier, data)
+  },
+  // Optional hosted media layer. The app certificate stays in the main
+  // process; only the public config and finished tokens cross this bridge.
+  watchParty: {
+    config: () => ipcRenderer.invoke('watch-party:config'),
+    identify: (peerKey) => ipcRenderer.invoke('watch-party:identify', peerKey),
+    mint: (request) => ipcRenderer.invoke('watch-party:mint', request)
   }
 })

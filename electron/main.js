@@ -7,6 +7,7 @@ const { tracePrismLLM } = require('../observability/prism')
 
 const { isMac, isLinux, isWindows } = require('which-runtime')
 const { command, flag } = require('paparam')
+const { registerWatchPartyIpc } = require('./watch-party')
 const pkg = require('../package.json')
 const { name, productName, version, upgrade } = pkg
 
@@ -35,6 +36,11 @@ if (pearStore) app.setPath('userData', pearStore)
 ipcMain.on('pkg', (evt) => {
   evt.returnValue = pkg
 })
+
+// Optional hosted media layer. Registering the handlers is unconditional; the
+// handlers themselves report "off" unless CUP_PULSE_MEDIA=on, so the renderer
+// always has something to ask and the default answer is fully peer-to-peer.
+registerWatchPartyIpc(ipcMain)
 
 function getAppPath() {
   if (!app.isPackaged) return null
