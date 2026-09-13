@@ -126,6 +126,7 @@
         summarizeOwners,
         summarizePipeline
       } from '../shared/cup.mjs'
+      import { renderAccountRow, renderOpportunityCard } from '../renderer/safe-dom.js'
 
       const state = { crm: null, owner: 'all', peers: 0 }
 
@@ -151,10 +152,6 @@
         return String(value)
       }
 
-      function cssToken(value) {
-        return value.replace(/\s+/g, '-')
-      }
-
       function render() {
         if (!state.crm) return
         const opportunities = filterByOwner(enrichOpportunities(state.crm), state.owner)
@@ -170,41 +167,11 @@
         elements.accountList.replaceChildren(
           ...state.crm.accounts
             .filter((a) => state.owner === 'all' || a.owner === state.owner)
-            .map((account) => {
-              const row = document.createElement('article')
-              row.className = 'account-row'
-              row.innerHTML = `
-                <div>
-                  <strong>${account.name}</strong>
-                  <span>${account.owner} · ${account.segment}</span>
-                </div>
-                <p class="health health-${cssToken(account.health)}">${account.health}</p>
-              `
-              return row
-            })
+            .map(renderAccountRow)
         )
 
         elements.opportunityList.replaceChildren(
-          ...opportunities.map((opportunity) => {
-            const card = document.createElement('article')
-            card.className = 'card'
-            card.innerHTML = `
-              <header>
-                <div>
-                  <h3>${opportunity.name}</h3>
-                  <p>${opportunity.account.name} · ${opportunity.stage}</p>
-                </div>
-                <strong>$${formatCompact(opportunity.amount)}</strong>
-              </header>
-              <div class="pill-row">
-                <span class="pill">${opportunity.probability}% confidence</span>
-                <span class="pill">Weighted $${formatCompact(opportunity.weightedAmount)}</span>
-                <span class="pill risk-${opportunity.riskLabel}">${opportunity.riskLabel} risk (${opportunity.riskScore})</span>
-                <span class="pill">${opportunity.forecastCategory}</span>
-              </div>
-            `
-            return card
-          })
+          ...opportunities.map((opportunity) => renderOpportunityCard(opportunity, formatCompact))
         )
       }
 
