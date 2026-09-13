@@ -9,6 +9,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createServer } from 'node:http'
 import { chromium } from 'playwright'
+import { resolveUnderBase } from './safe-path.mjs'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 const demoDir = join(root, 'demo')
@@ -25,8 +26,21 @@ function startStaticServer() {
   return new Promise((resolve) => {
     const server = createServer((req, res) => {
       const url = new URL(req.url, `http://127.0.0.1:${port}`)
-      let filePath = join(root, decodeURIComponent(url.pathname))
-      if (url.pathname === '/') filePath = join(demoDir, 'recording.html')
+      let requested
+      try {
+        requested = url.pathname === '/' ? 'demo/recording.html' : decodeURIComponent(url.pathname)
+      } catch {
+        res.writeHead(400)
+        res.end('Bad request')
+        return
+      }
+
+      const filePath = resolveUnderBase(root, requested)
+      if (!filePath) {
+        res.writeHead(404)
+        res.end('Not found')
+        return
+      }
 
       import('node:fs').then((fs) => {
         fs.readFile(filePath, (err, data) => {
