@@ -212,7 +212,7 @@ if (!lock) {
     if (url) handleDeepLink(url)
   })
 
-app.whenReady().then(() => {
+  app.whenReady().then(() => {
     void tracePrismLLM({
       agentId: 'cup-pulse',
       agentName: 'Cup Pulse Electron',

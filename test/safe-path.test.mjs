@@ -9,9 +9,18 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
 describe('resolveUnderBase', () => {
   it('keeps legitimate in-tree paths under the repo root', () => {
-    assert.equal(resolveUnderBase(root, 'demo/recording.html'), join(root, 'demo', 'recording.html'))
-    assert.equal(resolveUnderBase(root, '/demo/recording.html'), join(root, 'demo', 'recording.html'))
-    assert.equal(resolveUnderBase(root, 'renderer/styles.css'), join(root, 'renderer', 'styles.css'))
+    assert.equal(
+      resolveUnderBase(root, 'demo/recording.html'),
+      join(root, 'demo', 'recording.html')
+    )
+    assert.equal(
+      resolveUnderBase(root, '/demo/recording.html'),
+      join(root, 'demo', 'recording.html')
+    )
+    assert.equal(
+      resolveUnderBase(root, 'renderer/styles.css'),
+      join(root, 'renderer', 'styles.css')
+    )
     assert.equal(resolveUnderBase(root, '/shared/seed.json'), join(root, 'shared', 'seed.json'))
     assert.equal(
       resolveUnderBase(root, 'demo/../renderer/styles.css'),
